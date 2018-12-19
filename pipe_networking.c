@@ -9,7 +9,26 @@
   returns the file descriptor for the upstream pipe.
   =========================*/
 int server_handshake(int *to_client) {
-  return 0;
+	char buf[200];
+
+	//creating pipe
+	mkfifo("WPK",0644);
+	int public = open("WKP",O_RDONLY);
+	printf("[server]:Opened public pipe\n");
+
+	//receive
+	read(public,buf,20);
+	printf("[server]:Message %s received\n",buf);
+
+	//writing to private
+	int privatep = open("private",O_WRONLY);
+	write(privatep,ACK,sizeof(ACK));
+	*to_client = privatep;
+	read(public,buf,200);
+	if(!(strcmp(buf,"Got Client"))){
+		printf("[server]:Handshake Completed\n");
+	}
+	return public;
 }
 
 
@@ -21,5 +40,28 @@ int server_handshake(int *to_client) {
   returns the file descriptor for the downstream pipe.
   =========================*/
 int client_handshake(int *to_server) {
-  return 0;
+	char buf[200];
+	char * name = "private";
+	//Create Pipe
+	mkfifo(name,0644);
+
+	//Write to server
+	int public = open("WKP",O_WRONLY);
+	printf("[client]:Open WKP\n");
+	write(public,name,20);
+
+	//Opening private pipe
+	int private = open(name,O_RDONLY);
+	printf("[client]:Open private pipe\n");
+
+	read(private,buf,200);
+
+	printf("[client]:Message Received %s\n",buf);
+	
+	//Final check
+	write(public,"Got Client",200);
+	*to_server = public;
+	remove(name);
+	remove("WKP");
+  	return private;
 }
