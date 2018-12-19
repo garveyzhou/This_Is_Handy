@@ -12,10 +12,9 @@ int server_handshake(int *to_client) {
 	char buf[200];
 
 	//creating pipe
-	mkfifo("WPK",0644);
+	mkfifo("WKP",0644);
+	printf("[server]:Waiting for connection...\n");
 	int public = open("WKP",O_RDONLY);
-	printf("[server]:Opened public pipe\n");
-
 	//receive
 	read(public,buf,20);
 	printf("[server]:Message %s received\n",buf);
@@ -48,7 +47,7 @@ int client_handshake(int *to_server) {
 	//Write to server
 	int public = open("WKP",O_WRONLY);
 	printf("[client]:Open WKP\n");
-	write(public,name,20);
+	write(public,buf,20);
 
 	//Opening private pipe
 	int private = open(name,O_RDONLY);
@@ -61,7 +60,5 @@ int client_handshake(int *to_server) {
 	//Final check
 	write(public,"Got Client",200);
 	*to_server = public;
-	remove(name);
-	remove("WKP");
   	return private;
 }
